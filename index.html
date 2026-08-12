@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>স্টক অ্যাপ</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4F46E5">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="স্টক অ্যাপ">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+
+  :root {
+    --bg: #F7F8FB;
+    --card: #FFFFFF;
+    --ink: #16182B;
+    --ink-soft: #7A7F94;
+    --border: #EDEEF4;
+    --primary: #4F46E5;
+    --primary-soft: #EEEDFC;
+    --green: #0D9488;
+    --green-soft: #E4F5F3;
+    --red: #E23744;
+    --red-soft: #FDEAEB;
+    --amber: #D97706;
+    --amber-soft: #FDF1DF;
+    --shadow: 0 1px 2px rgba(22,24,43,0.04), 0 4px 14px rgba(22,24,43,0.06);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body { margin:0; font-family:'Hind Siliguri', sans-serif; background: var(--bg); color: var(--ink); min-height:100vh; padding-bottom:84px; }
+
+  header { background: var(--primary); color:#fff; padding: 18px 20px 22px; border-radius: 0 0 20px 20px; }
+  header .top-row { display:flex; justify-content:space-between; align-items:center; }
+  header h1 { font-size:19px; font-weight:700; margin:0; }
+  header .icon-btn { background: rgba(255,255,255,0.18); border:none; color:#fff; width:34px; height:34px; border-radius:10px; font-size:15px; cursor:pointer; }
+  header .date-pill { margin-top:12px; display:inline-flex; align-items:center; gap:8px; background: rgba(255,255,255,0.16); padding:7px 12px; border-radius:10px; font-size:13px; }
+  header input[type="date"] { background:transparent; border:none; color:#fff; font-family:'Hind Siliguri',sans-serif; font-size:13px; }
+  header input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+  main { max-width: 480px; margin:0 auto; padding: 16px 16px 0; }
+  .panel { display:none; }
+  .panel.active { display:block; }
+
+  .card { background: var(--card); border-radius:16px; box-shadow: var(--shadow); padding:16px; margin-bottom:14px; border:1px solid var(--border); }
+  .card h2 { font-size:15px; font-weight:700; margin:0 0 14px; display:flex; align-items:center; gap:8px; justify-content:space-between; }
+  .card h2 .badge { font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:700; padding:3px 9px; border-radius:20px; letter-spacing:0.5px; }
+  .badge.out { background: var(--green-soft); color: var(--green); }
+  .badge.in { background: var(--red-soft); color: var(--red); }
+  .badge.ret { background: var(--amber-soft); color: var(--amber); }
+
+  label { display:block; font-size:12.5px; color: var(--ink-soft); font-weight:600; margin:0 0 6px; }
+  input, select, textarea {
+    width:100%; font-family:'Hind Siliguri',sans-serif; font-size:14.5px; padding:11px 13px;
+    border:1.5px solid var(--border); border-radius:12px; background: var(--bg); color: var(--ink); margin-bottom:12px;
+  }
+  input:focus, select:focus, textarea:focus { outline:none; border-color: var(--primary); background:#fff; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  button.btn { width:100%; border:none; padding:13px; border-radius:12px; font-family:'Hind Siliguri',sans-serif; font-weight:700; font-size:14.5px; cursor:pointer; }
+  button.btn.primary { background: var(--primary); color:#fff; }
+  button.btn.out { background: var(--green); color:#fff; }
+  button.btn.in { background: var(--red); color:#fff; }
+  button.btn.amber { background: var(--amber); color:#fff; }
+  button.btn:active { opacity:0.85; transform: translateY(1px); }
+
+  details.setup summary { cursor:pointer; font-size:13px; color: var(--primary); font-weight:600; padding:4px 0; }
+
+  .entry-list { display:flex; flex-direction:column; gap:8px; max-height:400px; overflow-y:auto; }
+  .entry { display:flex; justify-content:space-between; align-items:center; padding:12px 14px; border-radius:12px; background: var(--bg); gap:10px; }
+  .entry .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .entry.out .dot { background: var(--green); }
+  .entry.in .dot { background: var(--red); }
+  .entry.ret .dot { background: var(--amber); }
+  .entry .info { display:flex; align-items:center; gap:10px; min-width:0; }
+  .entry .name { font-weight:700; font-size:13.5px; }
+  .entry .meta { font-size:11.5px; color: var(--ink-soft); }
+  .entry .amt { font-family:'JetBrains Mono',monospace; font-weight:700; font-size:13px; white-space:nowrap; }
+  .entry.out .amt { color: var(--green); }
+  .entry.in .amt { color: var(--red); }
+  .entry.ret .amt { color: var(--amber); }
+  .entry .del { background:none; border:none; color: var(--ink-soft); font-size:16px; cursor:pointer; padding:2px 4px; flex-shrink:0; }
+
+  .empty { text-align:center; color: var(--ink-soft); font-size:13.5px; padding:24px 0; }
+
+  table.stock-table { width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.stock-table th { text-align:left; font-size:11px; color: var(--ink-soft); font-weight:700; padding:8px; border-bottom:2px solid var(--border); position:sticky; top:0; background: var(--card); }
+  table.stock-table td { padding:10px 8px; border-bottom:1px solid var(--border); }
+  table.stock-table td.num { font-family:'JetBrains Mono',monospace; text-align:right; font-weight:600; }
+  table.stock-table tr.low td { color: var(--red); }
+  .table-scroll { max-height:440px; overflow-y:auto; }
+
+  .ledger-scroll { overflow-x:auto; max-width:100%; }
+  table.ledger-table { border-collapse:collapse; font-size:12.5px; white-space:nowrap; }
+  table.ledger-table th, table.ledger-table td { padding:8px 10px; border:1px solid var(--border); text-align:center; }
+  table.ledger-table th { background: var(--primary-soft); color: var(--primary); font-size:11.5px; position:sticky; top:0; }
+  table.ledger-table td.datecell { background: var(--bg); font-weight:700; position:sticky; left:0; }
+  table.ledger-table .stockval { font-family:'JetBrains Mono',monospace; font-weight:700; }
+  table.ledger-table .chg-out { color: var(--green); font-size:10.5px; margin-left:2px; }
+  table.ledger-table .chg-in { color: var(--red); font-size:10.5px; margin-left:2px; }
+
+  .bottom-nav { position:fixed; bottom:0; left:0; right:0; background: var(--card); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:8px 4px calc(8px + env(safe-area-inset-bottom)); z-index:20; }
+  .nav-btn { background:none; border:none; display:flex; flex-direction:column; align-items:center; gap:3px; color: var(--ink-soft); font-size:11px; font-weight:600; padding:6px 10px; cursor:pointer; font-family:'Hind Siliguri',sans-serif; flex:1; }
+  .nav-btn .ic { font-size:19px; }
+  .nav-btn.active { color: var(--primary); }
+
+  .toast { position:fixed; bottom:96px; left:50%; transform:translateX(-50%) translateY(10px); background: var(--ink); color:#fff; padding:10px 18px; border-radius:24px; font-size:13px; opacity:0; transition: all .25s ease; z-index:30; pointer-events:none; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .loading { text-align:center; padding:60px 20px; color: var(--ink-soft); }
+
+  .install-bar { display:none; align-items:center; justify-content:space-between; gap:10px; background: var(--primary-soft); border:1.5px solid var(--primary); border-radius:14px; padding:12px 14px; margin:14px 16px 0; font-size:13px; color: var(--primary); }
+  .install-bar button { background: var(--primary); color:#fff; border:none; padding:8px 14px; border-radius:10px; font-weight:700; font-size:12.5px; cursor:pointer; white-space:nowrap; }
+
+  .icon-row { display:flex; gap:8px; }
+  .icon-row button.mini { flex:1; background: var(--bg); border:1.5px solid var(--border); color: var(--ink-soft); padding:9px; border-radius:10px; font-size:12px; font-weight:600; cursor:pointer; font-family:'Hind Siliguri',sans-serif; }
+</style>
+</head>
+<body>
+
+  <header>
+    <div class="top-row">
+      <h1>📦 স্টক অ্যাপ</h1>
+      <button class="icon-btn" onclick="document.getElementById('restoreFile').click()">⭱</button>
+    </div>
+    <div class="date-pill">📅 <input type="date" id="dateInput"></div>
+  </header>
+
+  <div class="install-bar" id="installBar">
+    <span>📲 হোম স্ক্রিনে ইনস্টল করুন</span>
+    <button onclick="installApp()">ইনস্টল</button>
+  </div>
+
+  <main>
+    <div id="loading" class="loading">লোড হচ্ছে…</div>
+    <div id="app" style="display:none;">
+
+      <!-- ENTRY -->
+      <div class="panel active" id="panel-entry">
+
+        <details class="setup">
+          <summary>▸ একসাথে সব প্রোডাক্ট যোগ করুন (প্রথমবার)</summary>
+          <div class="card" style="margin-top:8px;">
+            <label>প্রতি লাইনে: নাম,পরিমাণ</label>
+            <textarea id="bulkSetup" rows="5" placeholder="Napa,1200
+Seclo,3000
+Fexo,850"></textarea>
+            <button class="btn amber" onclick="bulkAddStock()">সব যোগ করুন</button>
+          </div>
+        </details>
+
+        <div class="card">
+          <h2>স্টক বের হলো (বিক্রি/ডেলিভারি) <span class="badge out">OUT</span></h2>
+          <label>প্রোডাক্ট</label>
+          <input type="text" id="oName" list="productList" placeholder="প্রোডাক্টের নাম">
+          <datalist id="productList"></datalist>
+          <label>বক্স সংখ্যা</label>
+          <input type="number" id="oQty" placeholder="0">
+          <button class="btn out" onclick="addOut()">যোগ করুন</button>
+        </div>
+
+        <div class="card">
+          <h2>নতুন স্টক এলো <span class="badge in">IN</span></h2>
+          <label>প্রোডাক্ট</label>
+          <input type="text" id="iName" list="productList" placeholder="প্রোডাক্টের নাম">
+          <label>বক্স সংখ্যা</label>
+          <input type="number" id="iQty" placeholder="0">
+          <button class="btn in" onclick="addStockIn()">যোগ করুন</button>
+        </div>
+
+        <div class="card">
+          <h2>রিটার্ন <span class="badge ret">RETURN</span></h2>
+          <label>প্রোডাক্ট</label>
+          <input type="text" id="rName" list="productList" placeholder="প্রোডাক্টের নাম">
+          <div class="row2">
+            <div><label>বক্স</label><input type="number" id="rQty" placeholder="0"></div>
+            <div><label>ধরন</label>
+              <select id="rType">
+                <option value="return_ok">বিক্রিযোগ্য</option>
+                <option value="return_damage">নষ্ট/মেয়াদোত্তীর্ণ</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn amber" onclick="addReturn()">যোগ করুন</button>
+        </div>
+
+        <div class="card">
+          <h2>আজকের সব এন্ট্রি</h2>
+          <div class="entry-list" id="entryList"></div>
+        </div>
+      </div>
+
+      <!-- LEDGER -->
+      <div class="panel" id="panel-ledger">
+        <div class="card">
+          <h2>লেজার (তারিখ × প্রোডাক্ট)</h2>
+          <div class="ledger-scroll">
+            <table class="ledger-table" id="ledgerTable"></table>
+          </div>
+          <div class="empty" id="ledgerEmpty" style="display:none;">এখনো কোনো ডেটা নেই</div>
+        </div>
+        <div class="card">
+          <div class="icon-row">
+            <button class="mini" onclick="exportBackup()">⭳ Backup নিন</button>
+            <button class="mini" onclick="document.getElementById('restoreFile').click()">⭱ Restore করুন</button>
+          </div>
+          <input type="file" id="restoreFile" accept="application/json" style="display:none;" onchange="importBackup(event)">
+        </div>
+      </div>
+
+      <!-- STOCK -->
+      <div class="panel" id="panel-stock">
+        <div class="card">
+          <h2>বর্তমান স্টক <span class="badge in" id="stockCount">0</span></h2>
+          <input type="text" id="stockSearch" placeholder="🔍 প্রোডাক্ট খুঁজুন..." oninput="renderStock()">
+          <div class="table-scroll">
+            <table class="stock-table">
+              <thead><tr><th>প্রোডাক্ট</th><th style="text-align:right;">স্টক</th></tr></thead>
+              <tbody id="stockTableBody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="stockEmpty" style="display:none;">এখনো কোনো পণ্য যোগ করা হয়নি</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="entry"><span class="ic">📝</span>এন্ট্রি</button>
+    <button class="nav-btn" data-tab="ledger"><span class="ic">📒</span>লেজার</button>
+    <button class="nav-btn" data-tab="stock"><span class="ic">📦</span>স্টক</button>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+let DATA = { transactions: [] };
+let currentDate = new Date().toISOString().slice(0,10);
+
+function fmt(n) { return Number(n||0).toLocaleString('en-IN'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=> t.classList.remove('show'), 1600);
+}
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('stock-only-data');
+    if (raw) DATA = JSON.parse(raw);
+  } catch (e) { DATA = { transactions: [] }; }
+  if (!DATA.transactions) DATA.transactions = [];
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  render();
+}
+
+function saveData() {
+  try { localStorage.setItem('stock-only-data', JSON.stringify(DATA)); }
+  catch (e) { showToast('সংরক্ষণে সমস্যা হয়েছে'); }
+}
+
+function bulkAddStock() {
+  const text = document.getElementById('bulkSetup').value.trim();
+  if (!text) return;
+  const lines = text.split('\n').map(l=>l.trim()).filter(Boolean);
+  let count = 0;
+  lines.forEach(line => {
+    const parts = line.split(',');
+    const name = (parts[0]||'').trim();
+    const qty = parseFloat(parts[1]) || 0;
+    if (name && qty > 0) {
+      DATA.transactions.push({ id: Date.now()+Math.random(), date: currentDate, type:'in', name, qty });
+      count++;
+    }
+  });
+  document.getElementById('bulkSetup').value = '';
+  saveData(); render();
+  showToast(count + 'টি প্রোডাক্ট যোগ হয়েছে');
+}
+
+function addOut() {
+  const name = document.getElementById('oName').value.trim();
+  const qty = parseFloat(document.getElementById('oQty').value);
+  if (!name || !qty || qty<=0) { showToast('প্রোডাক্ট ও পরিমাণ দিন'); return; }
+  DATA.transactions.push({ id: Date.now(), date: currentDate, type:'out', name, qty });
+  ['oName','oQty'].forEach(id=>document.getElementById(id).value='');
+  saveData(); render(); showToast('যোগ হয়েছে');
+}
+
+function addStockIn() {
+  const name = document.getElementById('iName').value.trim();
+  const qty = parseFloat(document.getElementById('iQty').value);
+  if (!name || !qty || qty<=0) { showToast('প্রোডাক্ট ও পরিমাণ দিন'); return; }
+  DATA.transactions.push({ id: Date.now(), date: currentDate, type:'in', name, qty });
+  ['iName','iQty'].forEach(id=>document.getElementById(id).value='');
+  saveData(); render(); showToast('স্টক যোগ হয়েছে');
+}
+
+function addReturn() {
+  const name = document.getElementById('rName').value.trim();
+  const qty = parseFloat(document.getElementById('rQty').value);
+  const type = document.getElementById('rType').value;
+  if (!name || !qty || qty<=0) { showToast('প্রোডাক্ট ও পরিমাণ দিন'); return; }
+  DATA.transactions.push({ id: Date.now(), date: currentDate, type, name, qty });
+  ['rName','rQty'].forEach(id=>document.getElementById(id).value='');
+  saveData(); render(); showToast('রিটার্ন যোগ হয়েছে');
+}
+
+function deleteTx(id) { DATA.transactions = DATA.transactions.filter(t=>t.id!==id); saveData(); render(); }
+function getTodayTx() { return DATA.transactions.filter(t=>t.date===currentDate); }
+
+const typeLabel = { in:'স্টক ইন', out:'বের হলো', return_ok:'রিটার্ন (বিক্রিযোগ্য)', return_damage:'রিটার্ন (নষ্ট)' };
+const typeClass = { in:'in', out:'out', return_ok:'ret', return_damage:'ret' };
+
+function renderEntryList() {
+  const list = document.getElementById('entryList');
+  const tx = getTodayTx();
+  list.innerHTML = '';
+  if (tx.length===0) { list.innerHTML = '<div class="empty">আজ এখনো কোনো এন্ট্রি নেই</div>'; return; }
+  tx.slice().reverse().forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'entry ' + typeClass[t.type];
+    div.innerHTML = `<div class="info"><span class="dot"></span><div><div class="name">${t.name}</div><div class="meta">${typeLabel[t.type]}</div></div></div>
+      <div style="display:flex; align-items:center; gap:8px;"><div class="amt">${t.qty} বক্স</div><button class="del" onclick="deleteTx(${t.id})">✕</button></div>`;
+    list.appendChild(div);
+  });
+}
+
+function renderStock() {
+  const stockMap = {};
+  DATA.transactions.forEach(t => {
+    if (!stockMap[t.name]) stockMap[t.name] = 0;
+    if (t.type==='in' || t.type==='return_ok') stockMap[t.name] += t.qty;
+    else if (t.type==='out') stockMap[t.name] -= t.qty;
+  });
+  const search = (document.getElementById('stockSearch').value||'').toLowerCase();
+  const tbody = document.getElementById('stockTableBody');
+  let names = Object.keys(stockMap).sort();
+  document.getElementById('stockCount').textContent = names.length;
+  if (search) names = names.filter(n=>n.toLowerCase().includes(search));
+  tbody.innerHTML = '';
+  document.getElementById('stockEmpty').style.display = Object.keys(stockMap).length===0 ? 'block':'none';
+  names.forEach(name => {
+    const qty = stockMap[name];
+    const tr = document.createElement('tr');
+    if (qty<=0) tr.className='low';
+    tr.innerHTML = `<td>${name}</td><td class="num">${fmt(qty)}</td>`;
+    tbody.appendChild(tr);
+  });
+  const datalist = document.getElementById('productList');
+  datalist.innerHTML = Object.keys(stockMap).sort().map(n=>`<option value="${n}">`).join('');
+}
+
+function renderLedger() {
+  const table = document.getElementById('ledgerTable');
+  const dates = [...new Set(DATA.transactions.map(t=>t.date))].sort();
+  const products = [...new Set(DATA.transactions.map(t=>t.name))].sort();
+  if (dates.length===0 || products.length===0) {
+    table.innerHTML = '';
+    document.getElementById('ledgerEmpty').style.display = 'block';
+    return;
+  }
+  document.getElementById('ledgerEmpty').style.display = 'none';
+  const running = {};
+  products.forEach(p => running[p] = 0);
+  let html = '<tr><th style="position:sticky;left:0;z-index:2;">তারিখ</th>' + products.map(p=>`<th>${p}</th>`).join('') + '</tr>';
+  dates.forEach(date => {
+    const dayTx = DATA.transactions.filter(t=>t.date===date);
+    const rowCells = products.map(p => {
+      const opening = running[p];
+      const inQty = dayTx.filter(t=>t.name===p && (t.type==='in'||t.type==='return_ok')).reduce((s,t)=>s+t.qty,0);
+      const outQty = dayTx.filter(t=>t.name===p && t.type==='out').reduce((s,t)=>s+t.qty,0);
+      running[p] = opening + inQty - outQty;
+      if (inQty===0 && outQty===0) return `<td><span class="stockval">${fmt(opening)}</span></td>`;
+      let parts = `<span class="stockval">${fmt(opening)}</span>`;
+      if (outQty>0) parts += `<span class="chg-out">−${fmt(outQty)}</span>`;
+      if (inQty>0) parts += `<span class="chg-in">+${fmt(inQty)}</span>`;
+      return `<td>${parts}</td>`;
+    }).join('');
+    html += `<tr><td class="datecell">${date}</td>${rowCells}</tr>`;
+  });
+  html += `<tr><td class="datecell" style="background:var(--primary-soft); color:var(--primary);">বর্তমান স্টক</td>` +
+    products.map(p => `<td><span class="stockval" style="color:var(--primary);">${fmt(running[p])}</span></td>`).join('') + `</tr>`;
+  table.innerHTML = html;
+}
+
+function render() { renderEntryList(); renderStock(); renderLedger(); }
+
+function exportBackup() {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
+  a.href = url; a.download = `stock-backup-${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  showToast('ব্যাকআপ ডাউনলোড হয়েছে');
+}
+
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.transactions) throw new Error('invalid');
+      if (!confirm('বর্তমান সব ডেটা মুছে ব্যাকআপ থেকে ফিরিয়ে আনা হবে। এগোবেন?')) return;
+      DATA = parsed;
+      saveData(); render();
+      showToast('ব্যাকআপ থেকে ফিরিয়ে আনা হয়েছে');
+    } catch (err) { showToast('ফাইলটি সঠিক নয়'); }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('dateInput').value = currentDate;
+document.getElementById('dateInput').addEventListener('change', (e) => { currentDate = e.target.value; render(); });
+
+loadData();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(()=>{}); });
+}
+let deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('installBar').style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBar').style.display = 'none';
+  deferredInstallPrompt = null;
+});
+function installApp() {
+  if (!deferredInstallPrompt) { showToast('ব্রাউজার মেনু থেকে "Add to Home Screen" বেছে নিন'); return; }
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.finally(() => {
+    deferredInstallPrompt = null;
+    document.getElementById('installBar').style.display = 'none';
+  });
+}
+</script>
+</body>
+</html>
